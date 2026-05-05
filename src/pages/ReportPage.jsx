@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createItem } from '../services/items';
-import { useAuth } from '../components/AuthContext';
 import { useToast } from '../components/Toast';
 
 const ReportPage = () => {
@@ -11,7 +10,6 @@ const ReportPage = () => {
   const [loading, setLoading] = useState(false);
   const fileRef = useRef(null);
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { showToast } = useToast();
 
   const handleImage = (file) => {
