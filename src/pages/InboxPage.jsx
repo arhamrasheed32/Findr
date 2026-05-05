@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { getConversations } from '../services/chat';
 import { getItemById } from '../services/items';
 
+import { useAuth } from '../components/AuthContext';
+
 const InboxPage = () => {
   const navigate = useNavigate();
-  const rawUser = localStorage.getItem('srm_findr_user');
-  const user = rawUser ? JSON.parse(rawUser) : null;
+  const { user } = useAuth();
 
   const [conversations, setConversations] = useState([]);
   const [enriched, setEnriched] = useState([]);

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getItemById } from '../services/items';
 import { createConversation } from '../services/chat';
+import { useAuth } from '../components/AuthContext';
 import { useToast } from '../components/Toast';
 
 const PLACEHOLDER = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=900';
@@ -9,13 +10,11 @@ const PLACEHOLDER = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fb
 const ItemDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [contacting, setContacting] = useState(false);
-
-  const rawUser = localStorage.getItem('srm_findr_user');
-  const user = rawUser ? JSON.parse(rawUser) : null;
 
   useEffect(() => {
     getItemById(id)

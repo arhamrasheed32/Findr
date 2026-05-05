@@ -1,41 +1,47 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMessages, sendMessage, subscribeToMessages } from '../services/chat';
+import { useAuth } from '../components/AuthContext';
 import { useToast } from '../components/Toast';
 
 const ChatPage = () => {
   const { conversationId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { showToast } = useToast();
-
-  const rawUser = localStorage.getItem('srm_findr_user');
-  const user = rawUser ? JSON.parse(rawUser) : null;
 
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
-  const pollRef = useRef(null);
 
-  // Fetch conversation item info from the conversationId stored in messages (or from URL state)
   const loadMessages = useCallback(async () => {
     try {
       const msgs = await getMessages(conversationId);
       setMessages(msgs);
-    } catch {
-      // Silently fail on poll
+    } catch (err) {
+      showToast('Failed to load messages', 'error');
     }
-  }, [conversationId]);
+  }, [conversationId, showToast]);
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
     loadMessages();
-    // Poll every 3 seconds for new messages
-    pollRef.current = setInterval(loadMessages, 3000);
-    return () => clearInterval(pollRef.current);
-  }, [loadMessages]); // eslint-disable-line
 
-  // Auto-scroll to bottom when messages update
+    // Realtime subscription
+    const subscription = subscribeToMessages(conversationId, (newMsg) => {
+      setMessages((prev) => {
+        // Prevent duplicate messages if optimistic update already finished
+        if (prev.find(m => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
+      });
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [conversationId, user, navigate, loadMessages]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -44,25 +50,15 @@ const ChatPage = () => {
     e.preventDefault();
     if (!text.trim()) return;
     setSending(true);
-    // Optimistic update
-    const optimistic = {
-      id: `opt-${Date.now()}`,
-      conversation_id: conversationId,
-      sender_id: user.id,
-      text: text.trim(),
-      created_at: new Date().toISOString(),
-      optimistic: true,
-    };
-    setMessages((prev) => [...prev, optimistic]);
+    
+    const messageText = text.trim();
     setText('');
 
     try {
-      const msg = await sendMessage(conversationId, user.id, optimistic.text);
-      setMessages((prev) => prev.map((m) => (m.id === optimistic.id ? msg : m)));
-    } catch {
-      setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
+      await sendMessage(conversationId, user.id, messageText);
+    } catch (err) {
       showToast('Failed to send message', 'error');
-      setText(optimistic.text);
+      setText(messageText);
     } finally {
       setSending(false);
     }
