@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signIn, signUp } from '../services/auth';
+import { useAuth } from '../components/AuthContext';
 import { useToast } from '../components/Toast';
 import srmLogo from '../assets/srm-logo.webp';
 
@@ -10,8 +11,16 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  // Redirect to home once user is detected
+  useEffect(() => {
+    if (user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,12 +29,12 @@ const LoginPage = () => {
     try {
       if (isRegister) {
         await signUp(email, password, name);
-        showToast('Account created! Please check your email if verification is enabled.', 'success');
-        setIsRegister(false); // Switch to login
+        showToast('Account created! You can now sign in.', 'success');
+        setIsRegister(false);
       } else {
         await signIn(email, password);
         showToast('Welcome back!', 'success');
-        navigate('/');
+        // Navigation is handled by the useEffect above
       }
     } catch (err) {
       showToast(err.message || 'Authentication failed', 'error');
