@@ -55,14 +55,23 @@ export const getCurrentUser = async () => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  // Fetch extra details from profiles table
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  // Try to fetch extra details from profiles table
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
-  return { ...user, ...profile };
+    if (profile) {
+      return { ...user, name: profile.name || user.user_metadata?.full_name || user.email?.split('@')[0] };
+    }
+  } catch (err) {
+    // profiles table may not exist yet — that's okay
+  }
+
+  // Fallback: use auth metadata for the name
+  return { ...user, name: user.user_metadata?.full_name || user.email?.split('@')[0] };
 };
 
 /**

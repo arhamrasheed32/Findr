@@ -9,15 +9,15 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Initial fetch
-    getCurrentUser().then(u => {
-      setUser(u);
-      setLoading(false);
-    });
+    getCurrentUser()
+      .then(u => setUser(u))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
 
     // Listen for changes
     const { data: { subscription } } = onAuthStateChange((_event, session) => {
       if (session?.user) {
-        getCurrentUser().then(setUser);
+        getCurrentUser().then(setUser).catch(() => setUser(null));
       } else {
         setUser(null);
       }
