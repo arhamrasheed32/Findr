@@ -1,0 +1,1052 @@
+import React, { useEffect, useState } from "react";
+
+const initialFormData = {
+  itemName: "",
+  description: "",
+  contactInfo: "",
+};
+
+function App() {
+  const [formData, setFormData] = useState(initialFormData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+
+  useEffect(() => {
+    if (!toastVisible) {
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      setToastVisible(false);
+    }, 2800);
+
+    return () => window.clearTimeout(timer);
+  }, [toastVisible]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+
+    if (isLoading) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    const payload = {
+      itemName: formData.itemName.trim(),
+      description: formData.description.trim(),
+      contactInfo: formData.contactInfo.trim(),
+      submittedAt: new Date().toISOString(),
+      source: "SRM Campus Lost and Found System",
+    };
+
+    window.setTimeout(() => {
+      console.log("SRM Lost and Found Submission");
+      console.log(JSON.stringify(payload, null, 2));
+      setIsLoading(false);
+      setToastVisible(true);
+      setFormData(initialFormData);
+    }, 1500);
+  };
+
+  return (
+    <>
+      <style>
+        {`
+          :root {
+            --primary: #0b3d91;
+            --primary-dark: #082c68;
+            --accent: #ffc72c;
+            --accent-deep: #f1b500;
+            --bg-soft: #f4f8ff;
+            --bg-white: rgba(255, 255, 255, 0.88);
+            --line: rgba(11, 61, 145, 0.12);
+            --text: #11284f;
+            --muted: #5f7396;
+            --shadow-soft: 0 18px 50px rgba(11, 61, 145, 0.12);
+            --shadow-card: 0 22px 60px rgba(11, 61, 145, 0.14);
+            --radius-xl: 28px;
+            --radius-lg: 20px;
+            --radius-md: 16px;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          html, body, #root {
+            margin: 0;
+            min-height: 100%;
+            font-family: "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+          }
+
+          body {
+            background:
+              radial-gradient(circle at top right, rgba(255, 199, 44, 0.14), transparent 28%),
+              radial-gradient(circle at left 20%, rgba(11, 61, 145, 0.08), transparent 30%),
+              linear-gradient(180deg, #f9fbff 0%, #edf4ff 100%);
+          }
+
+          a {
+            color: inherit;
+            text-decoration: none;
+          }
+
+          button,
+          input,
+          textarea {
+            font: inherit;
+          }
+
+          .app-shell {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+          }
+
+          .app-shell::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+              linear-gradient(rgba(11, 61, 145, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(11, 61, 145, 0.03) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 88%);
+            pointer-events: none;
+          }
+
+          .container {
+            width: min(1160px, calc(100% - 32px));
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+          }
+
+          .navbar {
+            margin-top: 18px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-radius: 24px;
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            animation: fadeDown 0.75s ease;
+          }
+
+          .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--primary);
+            white-space: nowrap;
+          }
+
+          .brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(145deg, var(--primary), #2158b5);
+            color: white;
+            box-shadow: 0 10px 20px rgba(11, 61, 145, 0.22);
+          }
+
+          .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex: 1;
+            justify-content: center;
+          }
+
+          .nav-link {
+            position: relative;
+            font-size: 0.96rem;
+            font-weight: 600;
+            color: var(--text);
+            padding: 8px 2px;
+            transition: color 0.3s ease;
+          }
+
+          .nav-link::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--primary));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+          }
+
+          .nav-link:hover {
+            color: var(--primary);
+          }
+
+          .nav-link:hover::after {
+            transform: scaleX(1);
+          }
+
+          .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+
+          .search-shell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 240px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            border: 1px solid rgba(11, 61, 145, 0.1);
+            background: rgba(255, 255, 255, 0.82);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+          }
+
+          .search-shell input {
+            width: 100%;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+          }
+
+          .search-shell input::placeholder {
+            color: #89a0c3;
+          }
+
+          .login-button,
+          .hero-primary,
+          .submit-button {
+            border: 0;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, color 0.3s ease;
+          }
+
+          .login-button {
+            padding: 12px 18px;
+            border-radius: 16px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            background: linear-gradient(135deg, var(--accent), #ffd867);
+            box-shadow: 0 12px 24px rgba(255, 199, 44, 0.28);
+          }
+
+          .login-button:hover,
+          .hero-primary:hover,
+          .submit-button:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.02);
+          }
+
+          .hero {
+            padding: 56px 0 26px;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 32px;
+            align-items: center;
+          }
+
+          .hero-copy {
+            animation: fadeUp 0.85s ease;
+          }
+
+          .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(11, 61, 145, 0.08);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 24px rgba(11, 61, 145, 0.08);
+          }
+
+          .hero h1 {
+            margin: 18px 0 14px;
+            font-size: clamp(2.5rem, 5vw, 4.7rem);
+            line-height: 1.04;
+            letter-spacing: -0.05em;
+            color: var(--primary-dark);
+          }
+
+          .hero p {
+            margin: 0;
+            max-width: 610px;
+            color: var(--muted);
+            line-height: 1.8;
+            font-size: 1.04rem;
+          }
+
+          .hero-actions {
+            margin-top: 28px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+          }
+
+          .hero-primary {
+            padding: 15px 22px;
+            border-radius: 16px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            background: linear-gradient(135deg, var(--accent), #ffd867);
+            box-shadow: 0 18px 30px rgba(255, 199, 44, 0.25);
+          }
+
+          .hero-outline {
+            padding: 15px 22px;
+            border-radius: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(11, 61, 145, 0.14);
+            box-shadow: 0 12px 28px rgba(11, 61, 145, 0.08);
+            transition: transform 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+          }
+
+          .hero-outline:hover {
+            transform: translateY(-2px) scale(1.02);
+            border-color: rgba(11, 61, 145, 0.24);
+            color: var(--primary-dark);
+          }
+
+          .hero-visual {
+            display: flex;
+            justify-content: center;
+            animation: fadeUp 1s ease;
+          }
+
+          .visual-card {
+            width: min(100%, 420px);
+            min-height: 360px;
+            border-radius: 34px;
+            position: relative;
+            overflow: hidden;
+            background:
+              linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(242, 247, 255, 0.92)),
+              linear-gradient(135deg, rgba(11, 61, 145, 0.08), rgba(255, 199, 44, 0.12));
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+          }
+
+          .visual-card::before {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 199, 44, 0.26), transparent 68%);
+            top: -40px;
+            right: -50px;
+          }
+
+          .visual-card::after {
+            content: "";
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(11, 61, 145, 0.18), transparent 70%);
+            bottom: -35px;
+            left: -20px;
+          }
+
+          .visual-inner {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+          }
+
+          .visual-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+          }
+
+          .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-radius: 999px;
+            background: rgba(11, 61, 145, 0.08);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.88rem;
+          }
+
+          .icon-stack {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+          }
+
+          .mini-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            font-size: 1.35rem;
+            background: white;
+            box-shadow: 0 14px 28px rgba(11, 61, 145, 0.12);
+          }
+
+          .visual-center {
+            display: grid;
+            place-items: center;
+            text-align: center;
+            padding: 10px 0;
+          }
+
+          .visual-ring {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background:
+              linear-gradient(135deg, rgba(11, 61, 145, 0.12), rgba(255, 199, 44, 0.22));
+            border: 1px solid rgba(11, 61, 145, 0.12);
+            box-shadow: inset 0 4px 12px rgba(255, 255, 255, 0.85);
+          }
+
+          .visual-ring span {
+            font-size: 4rem;
+          }
+
+          .visual-center h3 {
+            margin: 18px 0 8px;
+            font-size: 1.28rem;
+            color: var(--primary-dark);
+          }
+
+          .visual-center p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.7;
+            max-width: 290px;
+          }
+
+          .visual-footer {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+          }
+
+          .metric {
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(11, 61, 145, 0.08);
+            box-shadow: 0 12px 24px rgba(11, 61, 145, 0.07);
+          }
+
+          .metric strong {
+            display: block;
+            color: var(--primary);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+          }
+
+          .metric span {
+            color: var(--muted);
+            font-size: 0.9rem;
+          }
+
+          .section-grid {
+            padding: 12px 0 60px;
+            display: grid;
+            grid-template-columns: 0.92fr 1.08fr;
+            gap: 28px;
+            align-items: start;
+          }
+
+          .info-card,
+          .form-card {
+            background: var(--bg-white);
+            border: 1px solid rgba(255, 255, 255, 0.88);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+          }
+
+          .info-card {
+            padding: 28px;
+            animation: fadeUp 0.95s ease;
+          }
+
+          .info-card h2,
+          .form-card h2 {
+            margin: 0;
+            font-size: 1.55rem;
+            color: var(--primary-dark);
+          }
+
+          .info-card p,
+          .form-card p {
+            color: var(--muted);
+            line-height: 1.75;
+          }
+
+          .feature-list {
+            display: grid;
+            gap: 14px;
+            margin-top: 22px;
+          }
+
+          .feature-item {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(245, 249, 255, 0.9);
+            border: 1px solid rgba(11, 61, 145, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+          }
+
+          .feature-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 26px rgba(11, 61, 145, 0.08);
+          }
+
+          .feature-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, rgba(255, 199, 44, 0.24), rgba(11, 61, 145, 0.12));
+            color: var(--primary);
+            font-size: 1.15rem;
+            flex-shrink: 0;
+          }
+
+          .feature-item strong {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--primary);
+          }
+
+          .feature-item span {
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 0.95rem;
+          }
+
+          .form-card {
+            padding: 30px;
+            animation: fadeUp 1.05s ease;
+          }
+
+          .form-header {
+            margin-bottom: 20px;
+          }
+
+          .form-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            margin-bottom: 14px;
+            border-radius: 999px;
+            color: var(--primary);
+            background: rgba(11, 61, 145, 0.08);
+            font-size: 0.88rem;
+            font-weight: 700;
+          }
+
+          .form-fields {
+            display: grid;
+            gap: 18px;
+          }
+
+          .field {
+            position: relative;
+          }
+
+          .field-input,
+          .field-textarea {
+            width: 100%;
+            border: 1px solid rgba(11, 61, 145, 0.12);
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.86);
+            color: var(--text);
+            padding: 24px 18px 12px 52px;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+          }
+
+          .field-textarea {
+            min-height: 132px;
+            resize: vertical;
+          }
+
+          .field-input::placeholder,
+          .field-textarea::placeholder {
+            color: transparent;
+          }
+
+          .field-input:focus,
+          .field-textarea:focus {
+            border-color: rgba(11, 61, 145, 0.32);
+            box-shadow:
+              0 0 0 4px rgba(11, 61, 145, 0.08),
+              0 14px 26px rgba(11, 61, 145, 0.08);
+            transform: translateY(-1px);
+          }
+
+          .field-label {
+            position: absolute;
+            left: 52px;
+            top: 18px;
+            color: #6b7f9f;
+            pointer-events: none;
+            transition: transform 0.3s ease, top 0.3s ease, color 0.3s ease, font-size 0.3s ease;
+            transform-origin: left center;
+          }
+
+          .field-input:focus + .field-label,
+          .field-input:not(:placeholder-shown) + .field-label,
+          .field-textarea:focus + .field-label,
+          .field-textarea:not(:placeholder-shown) + .field-label {
+            top: 10px;
+            transform: scale(0.82);
+            color: var(--primary);
+            font-size: 0.88rem;
+          }
+
+          .field-icon {
+            position: absolute;
+            top: 17px;
+            left: 18px;
+            color: var(--primary);
+            font-size: 1.05rem;
+            opacity: 0.95;
+            transition: transform 0.3s ease;
+          }
+
+          .field:focus-within .field-icon {
+            transform: translateY(-1px) scale(1.06);
+          }
+
+          .submit-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+          }
+
+          .submit-button {
+            min-width: 190px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 22px;
+            border-radius: 16px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            background: linear-gradient(135deg, var(--accent), #ffd86f);
+            box-shadow: 0 18px 30px rgba(255, 199, 44, 0.22);
+          }
+
+          .submit-button:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--primary), #2d5eb4);
+            color: white;
+            box-shadow: 0 18px 30px rgba(11, 61, 145, 0.22);
+          }
+
+          .submit-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.82;
+          }
+
+          .spinner {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            border-top-color: currentColor;
+            animation: spin 0.8s linear infinite;
+          }
+
+          .submit-note {
+            color: var(--muted);
+            font-size: 0.92rem;
+          }
+
+          .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(11, 61, 145, 0.96);
+            color: white;
+            box-shadow: 0 22px 40px rgba(11, 61, 145, 0.22);
+            transform: translateY(${toastVisible ? "0" : "16px"});
+            opacity: ${toastVisible ? "1" : "0"};
+            pointer-events: none;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 20;
+          }
+
+          .toast-badge {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 199, 44, 0.22);
+            color: var(--accent);
+            font-weight: 900;
+          }
+
+          @keyframes fadeDown {
+            from {
+              opacity: 0;
+              transform: translateY(-14px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes fadeUp {
+            from {
+              opacity: 0;
+              transform: translateY(24px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          @keyframes spin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
+
+          @media (max-width: 1080px) {
+            .navbar {
+              flex-wrap: wrap;
+            }
+
+            .nav-links {
+              order: 3;
+              width: 100%;
+              justify-content: flex-start;
+              flex-wrap: wrap;
+              gap: 18px;
+            }
+
+            .hero,
+            .section-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+
+          @media (max-width: 720px) {
+            .container {
+              width: min(100%, calc(100% - 20px));
+            }
+
+            .navbar {
+              margin-top: 10px;
+              padding: 14px;
+              border-radius: 20px;
+            }
+
+            .nav-actions {
+              width: 100%;
+              flex-direction: column;
+              align-items: stretch;
+            }
+
+            .search-shell {
+              min-width: 0;
+              width: 100%;
+            }
+
+            .login-button {
+              width: 100%;
+            }
+
+            .hero {
+              padding-top: 34px;
+              gap: 22px;
+            }
+
+            .hero-actions,
+            .submit-row {
+              flex-direction: column;
+              align-items: stretch;
+            }
+
+            .hero-primary,
+            .hero-outline,
+            .submit-button {
+              width: 100%;
+            }
+
+            .visual-card,
+            .form-card,
+            .info-card {
+              border-radius: 24px;
+            }
+
+            .form-card,
+            .info-card {
+              padding: 22px;
+            }
+
+            .toast {
+              left: 12px;
+              right: 12px;
+              bottom: 12px;
+            }
+          }
+        `}
+      </style>
+
+      <div className="app-shell">
+        <div className="container">
+          <nav className="navbar">
+            <div className="brand">
+              <div className="brand-mark">S</div>
+              <span>SRM Findr</span>
+            </div>
+
+            <div className="nav-links">
+              <a className="nav-link" href="#home">Home</a>
+              <a className="nav-link" href="#report">Report Item</a>
+              <a className="nav-link" href="#browse">Browse</a>
+              <a className="nav-link" href="#help">Help</a>
+            </div>
+
+            <div className="nav-actions">
+              <div className="search-shell" aria-label="Search items">
+                <span aria-hidden="true">🔎</span>
+                <input type="text" placeholder="Search lost items..." />
+              </div>
+              <button className="login-button" type="button">Login</button>
+            </div>
+          </nav>
+
+          <section className="hero" id="home">
+            <div className="hero-copy">
+              <div className="eyebrow">🎓 SRM Campus Support Portal</div>
+              <h1>Lost Something on Campus?</h1>
+              <p>
+                Submit a report instantly, connect with the campus community, and
+                make item recovery faster through a secure and well-structured
+                university lost and found system.
+              </p>
+
+              <div className="hero-actions">
+                <button className="hero-primary" type="button">Report an Item</button>
+                <button className="hero-outline" type="button">Browse Items</button>
+              </div>
+            </div>
+
+            <div className="hero-visual">
+              <div className="visual-card">
+                <div className="visual-inner">
+                  <div className="visual-top">
+                    <div className="badge">Campus Recovery Desk</div>
+                    <div className="icon-stack">
+                      <div className="mini-icon">🎒</div>
+                      <div className="mini-icon">📱</div>
+                    </div>
+                  </div>
+
+                  <div className="visual-center">
+                    <div className="visual-ring">
+                      <span>🧭</span>
+                    </div>
+                    <h3>Structured Reporting</h3>
+                    <p>
+                      Designed for students, staff, and campus operations with
+                      dependable reporting and clear communication.
+                    </p>
+                  </div>
+
+                  <div className="visual-footer">
+                    <div className="metric">
+                      <strong>Secure</strong>
+                      <span>Verified campus workflow</span>
+                    </div>
+                    <div className="metric">
+                      <strong>Fast</strong>
+                      <span>Report in under a minute</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="section-grid">
+            <div className="info-card" id="browse">
+              <h2>Why Students Trust SRM Findr</h2>
+              <p>
+                The system is built to help campus users report missing belongings
+                quickly while keeping the experience clear, secure, and professional.
+              </p>
+
+              <div className="feature-list">
+                <div className="feature-item">
+                  <div className="feature-icon">📍</div>
+                  <div>
+                    <strong>Campus-focused reporting</strong>
+                    <span>Capture the essential details needed to identify and recover items efficiently.</span>
+                  </div>
+                </div>
+
+                <div className="feature-item">
+                  <div className="feature-icon">🛡️</div>
+                  <div>
+                    <strong>Reliable contact handling</strong>
+                    <span>Contact information stays organized so responses can happen with less confusion.</span>
+                  </div>
+                </div>
+
+                <div className="feature-item" id="help">
+                  <div className="feature-icon">📬</div>
+                  <div>
+                    <strong>Notification-ready records</strong>
+                    <span>Each submission is structured for seamless follow-up and administrative review.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-card" id="report">
+              <div className="form-header">
+                <div className="form-eyebrow">📝 Report an Item</div>
+                <h2>Submit Lost Item Details</h2>
+                <p>
+                  Provide the item details below and the system will prepare a clean
+                  campus-ready report for follow-up.
+                </p>
+              </div>
+
+              <form onSubmit={handleSubmit}>
+                <div className="form-fields">
+                  <div className="field">
+                    <input
+                      className="field-input"
+                      id="itemName"
+                      name="itemName"
+                      type="text"
+                      placeholder="Item Name"
+                      value={formData.itemName}
+                      onChange={handleChange}
+                      required
+                    />
+                    <label className="field-label" htmlFor="itemName">Item Name</label>
+                    <span className="field-icon" aria-hidden="true">🎒</span>
+                  </div>
+
+                  <div className="field">
+                    <textarea
+                      className="field-textarea"
+                      id="description"
+                      name="description"
+                      placeholder="Description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      required
+                    />
+                    <label className="field-label" htmlFor="description">Description</label>
+                    <span className="field-icon" aria-hidden="true">🧾</span>
+                  </div>
+
+                  <div className="field">
+                    <input
+                      className="field-input"
+                      id="contactInfo"
+                      name="contactInfo"
+                      type="text"
+                      placeholder="Contact Info"
+                      value={formData.contactInfo}
+                      onChange={handleChange}
+                      required
+                    />
+                    <label className="field-label" htmlFor="contactInfo">Contact Info</label>
+                    <span className="field-icon" aria-hidden="true">📞</span>
+                  </div>
+                </div>
+
+                <div className="submit-row">
+                  <button className="submit-button" type="submit" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <span className="spinner" aria-hidden="true" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>Submit Report</>
+                    )}
+                  </button>
+                  <span className="submit-note">Campus support will review and process your submission.</span>
+                </div>
+              </form>
+            </div>
+          </section>
+        </div>
+
+        <div className="toast" role="status" aria-live="polite" aria-hidden={!toastVisible}>
+          <div className="toast-badge">✓</div>
+          <div>Report submitted successfully.</div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default App;
