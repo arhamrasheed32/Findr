@@ -10,7 +10,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { addToast } = useToast();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -20,15 +20,15 @@ const LoginPage = () => {
     try {
       if (isRegister) {
         await signUp(email, password, name);
-        addToast('Account created! Please check your email if verification is enabled.', 'success');
+        showToast('Account created! Please check your email if verification is enabled.', 'success');
         setIsRegister(false); // Switch to login
       } else {
         await signIn(email, password);
-        addToast('Welcome back!', 'success');
+        showToast('Welcome back!', 'success');
         navigate('/');
       }
     } catch (err) {
-      addToast(err.message || 'Authentication failed', 'error');
+      showToast(err.message || 'Authentication failed', 'error');
     } finally {
       setLoading(false);
     }

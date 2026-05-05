@@ -29,19 +29,18 @@ const ReportPage = () => {
 
     setLoading(true);
     try {
-      const fd = new FormData();
-      fd.append('title', form.title);
-      fd.append('description', form.description);
-      fd.append('location', form.location);
-      fd.append('date', form.date || new Date().toISOString().split('T')[0]);
-      fd.append('reporter_id', user?.id || 'demo-user');
-      if (imageFile) fd.append('image', imageFile);
+      const itemData = {
+        title: form.title,
+        description: form.description,
+        location: form.location,
+        date: form.date || new Date().toISOString().split('T')[0],
+      };
 
-      await createItem(fd);
+      await createItem(itemData, imageFile);
       showToast('Item reported successfully! 🎉');
       navigate('/');
     } catch (err) {
-      showToast(err.message || 'Failed to submit. Is the server running?', 'error');
+      showToast(err.message || 'Failed to submit.', 'error');
     } finally {
       setLoading(false);
     }
